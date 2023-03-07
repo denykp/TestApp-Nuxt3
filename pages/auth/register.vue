@@ -1,61 +1,84 @@
 <script setup lang="ts">
-import { useAuth } from "@/stores/userAuth";
-import { InferType, number, object, string } from "yup";
+import { useForm } from "vee-validate";
+import { InferType, number, object, string, ref } from "yup";
 
 definePageMeta({
   title: "Register",
 });
 
-const layout = "auth-layout";
+const router = useRouter();
 
-const auth = useAuth();
+const layout = "auth-layout";
 
 const registerSchema = object({
   phone: string().required(),
   password: string().required(),
-  password_verify: string().required().equals(["password"]),
-  country: string().required(),
-  latlong: string(),
-  device_token: string(),
-  device_type: number()
+  password_verify: string()
     .required()
-    .test("type", "Must be 0 or 1 or 2", (val) =>
-      [0, 1, 2].includes(val || -1)
-    ),
+    .equals([ref("password")], "Password is different"),
+  country: string().required(),
 });
 
-type registerData = InferType<typeof registerSchema>;
-
-const formField = ref<registerData>({
-  phone: "",
-  password: "",
-  password_verify: "",
-  country: "",
-  latlong: "0",
-  device_token: "0",
-  device_type: 2,
+const { handleSubmit, errors } = useForm<InferType<typeof registerSchema>>({
+  validationSchema: registerSchema,
 });
 
-const login = async () => {
-  try {
-    useFetch("/api/auth/register", { body: formField });
-  } catch (error) {
-    console.error(error);
+// type registerData = InferType<typeof registerSchema>;
+
+// const formField = ref<registerData>({
+//   phone: "",
+//   password: "",
+//   password_verify: "",
+//   country: "",
+// });
+
+const register = handleSubmit(
+  async (values: InferType<typeof registerSchema>) => {
+    try {
+      console.log(values);
+      const { password_verify, ...others } = values;
+      // await useFetch("/api/auth/register");
+      const { data } = await useApi("/api/register", {
+        method: "post",
+        body: { ...others, latlong: "0", device_token: "0", device_type: 2 },
+      });
+
+      console.log(data);
+
+      if (data.user) {
+        router.push({
+          path: "/auth/otp",
+          query: {
+            user_id: data.user.id,
+          },
+        });
+      }
+    } catch (error) {
+      console.log(error);
+    }
   }
-};
+);
 </script>
 
 <template>
   <NuxtLayout :name="layout">
-    <FormInput type="phone" v-model="formField.phone" />
-    <FormInput type="password" v-model="formField.password" />
-    <FormInput type="password" v-model="formField.password_verify" />
-    <FormInput v-model="formField.country" />
+    <div id="title" class="mb-4 flex justify-center text-xl">Register</div>
+    <v-input name="phone" type="phone" placeholder="Phone" max-len="15" />
+    <v-input name="password" type="password" placeholder="Password" />
+    <v-input
+      name="password_verify"
+      type="password"
+      placeholder="Verify Password"
+    />
+    <v-input name="country" placeholder="Country" />
 
-    <pre>
-      {{ JSON.stringify(formField, null, 2) }}
-    </pre>
+    <div
+      v-if="Object.keys(errors).length"
+      class="w-[300px] rounded p-2 text-red-500 border-red-500 border bg-white"
+    >
+      {{ Object.values(errors).join(", ") }}
+    </div>
 
-    <FormButton class="mt-4 mx-auto" @click="login">Login</FormButton>
+    <FormButton class="mt-4 mx-auto" @click="register">Register</FormButton>
   </NuxtLayout>
 </template>

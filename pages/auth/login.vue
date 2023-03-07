@@ -34,24 +34,20 @@ const login = async () => {
 
 <template>
   <NuxtLayout :name="layout">
-    <pre class="overflow-y-auto h-96">
-      {{ v$.$errors }}
-    </pre>
+    <div class="mb-4 flex justify-center text-xl">Login</div>
     <label>
       <FormInput
+        placeholder="Phone"
         v-model="formField.phone"
         :error="v$.phone.$errors.map((val) => val.$message).join(',')"
       />
     </label>
     <FormInput
+      placeholder="Password"
       type="password"
       v-model="formField.password"
       :error="v$.phone.$errors.map((val) => val.$message).join(',')"
     />
-
-    <pre>
-      {{ JSON.stringify(formField, null, 2) }}
-    </pre>
 
     <FormButton class="mt-4 mx-auto" @click="login">Login</FormButton>
     <div class="mt-4 flex justify-center">

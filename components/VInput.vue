@@ -1,26 +1,21 @@
 <script setup lang="ts">
 import { useField } from "vee-validate";
 const props = defineProps({
-  modelValue: {
-    type: String,
-    default: "",
-  },
   type: { type: String, default: "text" },
   name: { type: String, default: "" },
   placeholder: { type: String, default: "" },
   width: { type: String, default: "" },
   height: { type: String, default: "" },
   classProp: { type: String, default: "" },
-  maxLen: { type: Number, default: null },
+  maxLen: { type: String, default: "" },
   label: { type: String, default: "" },
   error: { type: String, default: "" },
 });
 const passwordVisible = ref(false);
 const { value, errorMessage } = useField(props.name);
 
-const emit = defineEmits(["update:modelValue", "update:validate"]);
+// const emit = defineEmits(["update:modelValue", "update:validate"]);
 
-const inputValue = useModelWrapper(props, emit, "modelValue");
 const inputType = computed(() => {
   switch (props.type) {
     case "password": {
@@ -38,7 +33,7 @@ const inputType = computed(() => {
 
 const numbersOnly = (evt: any) => {
   if (props.type === "phone") {
-    if (!/\d/g.test(evt.key) || (evt.key === "0" && !props.modelValue)) {
+    if (!/\d/g.test(evt.key) || (evt.key === "0" && !value.value)) {
       return evt.preventDefault();
     } else {
       return true;
@@ -49,9 +44,11 @@ const numbersOnly = (evt: any) => {
   return true;
 };
 
-const callValidation = () => {
-  emit("update:validate");
-};
+const inputRef = ref<HTMLInputElement>();
+
+defineExpose({
+  inputRef,
+});
 </script>
 
 <template>
@@ -70,7 +67,7 @@ const callValidation = () => {
         62
       </div>
       <input
-        v-model="inputValue"
+        v-model="value"
         :type="inputType"
         :name="name"
         class="p-2 border border-gray-300 rounded"
@@ -78,9 +75,8 @@ const callValidation = () => {
         :style="`width: ${width || '300px'}; height: ${height || '40px'}`"
         :placeholder="placeholder"
         :maxlength="maxLen"
+        ref="inputRef"
         @keypress="numbersOnly"
-        @input="callValidation"
-        @blur="callValidation"
       />
       <div
         v-if="type === 'password'"
@@ -103,11 +99,11 @@ const callValidation = () => {
       </div>
     </div>
     <div
-      v-if="error"
+      v-if="errorMessage"
       class="text-red-500 text-sm"
       :style="`width: ${width || '300px'}; height: ${height || 'unset'}`"
     >
-      {{ error }}
+      {{ errorMessage }}
     </div>
   </div>
 </template>
