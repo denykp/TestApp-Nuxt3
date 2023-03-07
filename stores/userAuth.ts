@@ -1,26 +1,35 @@
 import { defineStore } from "pinia";
 import axios from "axios";
 
-export interface registerData extends loginData {
-  country: string;
+interface IVerifyOtp {
+  user_id: string;
+  otp_code: string;
 }
 
 export const useAuth = defineStore("auth", {
   state: () => ({
     userData: {},
-    token: "",
   }),
   actions: {
-    async login(payload: loginData) {
-      const { data } = await axios.post("/api/login", payload);
-      if (data.data) {
-        console.log(data);
+    async verifyOtp(payload: IVerifyOtp) {
+      const { data } = await useApi<ApiResponse<UserResponse>>(
+        "/api/register/otp/match",
+        {
+          method: "post",
+          body: payload,
+        }
+      );
+      const access_token = useCookie("access_token", { default: undefined });
+      if (data.user) {
+        access_token.value = data.user.access_token;
       }
     },
-    async register(payload: registerData) {
-      const { data } = await axios.post("/api/register", payload);
-      if (data.data) {
-        console.log(data);
+    async getMe() {
+      const { data } = await useApi<ApiResponse<UserResponse>>(
+        "/api/profile/me"
+      );
+      if (data.user) {
+        this.userData = data.user;
       }
     },
   },

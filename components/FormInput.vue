@@ -11,7 +11,7 @@ const props = defineProps({
   width: { type: String, default: "" },
   height: { type: String, default: "" },
   classProp: { type: String, default: "" },
-  maxLen: { type: Number, default: null },
+  maxLen: { type: String, default: "" },
   label: { type: String, default: "" },
   error: { type: String, default: "" },
 });
@@ -52,6 +52,12 @@ const numbersOnly = (evt: any) => {
 const callValidation = () => {
   emit("update:validate");
 };
+
+const inputRef = ref<HTMLInputElement>();
+
+defineExpose({
+  inputRef,
+});
 </script>
 
 <template>
@@ -78,6 +84,7 @@ const callValidation = () => {
         :style="`width: ${width || '300px'}; height: ${height || '40px'}`"
         :placeholder="placeholder"
         :maxlength="maxLen"
+        ref="inputRef"
         @keypress="numbersOnly"
         @input="callValidation"
         @blur="callValidation"

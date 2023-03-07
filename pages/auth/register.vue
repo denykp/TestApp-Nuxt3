@@ -23,30 +23,24 @@ const { handleSubmit, errors } = useForm<InferType<typeof registerSchema>>({
   validationSchema: registerSchema,
 });
 
-// type registerData = InferType<typeof registerSchema>;
-
-// const formField = ref<registerData>({
-//   phone: "",
-//   password: "",
-//   password_verify: "",
-//   country: "",
-// });
-
 const register = handleSubmit(
   async (values: InferType<typeof registerSchema>) => {
     try {
       console.log(values);
       const { password_verify, ...others } = values;
       // await useFetch("/api/auth/register");
-      const { data } = await useApi("/api/register", {
-        method: "post",
-        body: { ...others, latlong: "0", device_token: "0", device_type: 2 },
-      });
+      const { data } = await useApi<ApiResponse<UserResponse>>(
+        "/api/register",
+        {
+          method: "post",
+          body: { ...others, latlong: "0", device_token: "0", device_type: 2 },
+        }
+      );
 
       console.log(data);
 
       if (data.user) {
-        router.push({
+        navigateTo({
           path: "/auth/otp",
           query: {
             user_id: data.user.id,
